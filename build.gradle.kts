@@ -1,22 +1,39 @@
 plugins {
-    application
-    idea
-    kotlin("jvm") version "2.1.21"
-    kotlin("plugin.serialization") version "2.1.21"
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinxSerialization)
 }
+
+group = "org.karabula.gratzbot"
+version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-}
-
 kotlin {
-    jvmToolchain(17)
-}
+    val hostOs = System.getProperty("os.name")
+    val isArm64 = System.getProperty("os.arch") == "aarch64"
+    val isMingwX64 = hostOs.startsWith("Windows")
+    val nativeTarget = when {
+        hostOs == "Mac OS X" && isArm64 -> macosArm64("native")
+        hostOs == "Mac OS X" && !isArm64 -> macosX64("native")
+        hostOs == "Linux" && isArm64 -> linuxArm64("native")
+        hostOs == "Linux" && !isArm64 -> linuxX64("native")
+        isMingwX64 -> mingwX64("native")
+        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
 
-application {
-    mainClass = "org.karabula.gratzbot.MainKt"
+    nativeTarget.apply {
+        binaries {
+            executable {
+                entryPoint = "org.karabula.gratzbot.main"
+            }
+        }
+    }
+
+    sourceSets {
+        nativeMain.dependencies {
+            implementation(libs.kotlinxSerializationJson)
+        }
+    }
 }
