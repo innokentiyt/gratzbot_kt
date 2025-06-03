@@ -15,5 +15,5 @@ fun main() {
         }
     """.trimIndent()
     val user = json.decodeFromString<User>(jsonString)
-    println(json.encodeToString(user))
+    println(user)
 }

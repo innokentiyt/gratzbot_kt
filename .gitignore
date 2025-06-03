@@ -33,3 +33,5 @@ bin/
 
 # added manually
 /.idea/
+/.gradle/
+/build/
